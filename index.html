@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📓 にっぽちゃん — 日報＆月次レポート</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --sand: #F5ECD7;
+    --coral: #FF6B6B;
+    --coral-light: #FFD3D3;
+    --mint: #4ECDC4;
+    --mint-light: #D4F5F2;
+    --sun: #FFD93D;
+    --sun-light: #FFF4C2;
+    --lavender: #C3B1E1;
+    --lavender-light: #EDE8F8;
+    --brown: #5C4033;
+    --brown-mid: #8D6E63;
+    --brown-light: #BCAAA4;
+    --white: #FFFFFF;
+    --radius: 20px;
+    --shadow: 0 4px 20px rgba(92,64,51,0.10);
+    --shadow-hover: 0 8px 30px rgba(92,64,51,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    min-height: 100vh;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: var(--white);
+    border-bottom: 3px solid var(--sand);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(92,64,51,0.07);
+  }
+  .logo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.6rem;
+    color: var(--coral);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--mint); }
+  .today-badge {
+    background: var(--sun-light);
+    border: 2px solid var(--sun);
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-left: auto;
+  }
+
+  /* ===== NAV TABS ===== */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 20px 32px 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .tab-btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 10px 24px;
+    border-radius: 50px 50px 0 0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--sand);
+    color: var(--brown-mid);
+  }
+  .tab-btn.active {
+    background: var(--white);
+    color: var(--coral);
+    box-shadow: 0 -3px 12px rgba(255,107,107,0.12);
+  }
+  .tab-btn:hover:not(.active) { background: var(--coral-light); }
+
+  /* ===== MAIN PANEL ===== */
+  .panel {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    min-height: 500px;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ===== SECTION TITLE ===== */
+  .sec-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.25rem;
+    color: var(--brown);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-title::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--coral), var(--mint));
+    border-radius: 99px;
+  }
+
+  /* ===== FORM ===== */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brown-mid);
+    letter-spacing: 0.03em;
+  }
+  input[type="date"], input[type="text"], textarea, select {
+    border: 2px solid var(--sand);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--brown);
+    background: var(--cream);
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    resize: vertical;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px var(--coral-light);
+    background: var(--white);
+  }
+  textarea { min-height: 90px; }
+
+  /* ===== MOOD SELECTOR ===== */
+  .mood-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .mood-btn {
+    border: 2px solid var(--sand);
+    background: var(--cream);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    transition: all 0.2s;
+    color: var(--brown);
+  }
+  .mood-btn:hover { border-color: var(--coral); background: var(--coral-light); }
+  .mood-btn.selected { border-color: var(--coral); background: var(--coral); color: var(--white); }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--coral), #ff8e53);
+    color: var(--white);
+    border: none;
+    border-radius: 50px;
+    padding: 14px 36px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(255,107,107,0.35);
+    letter-spacing: 0.03em;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,107,107,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: var(--mint-light);
+    color: var(--mint);
+    border: 2px solid var(--mint);
+    border-radius: 50px;
+    padding: 10px 24px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--mint); color: var(--white); }
+
+  .btn-row { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--brown);
+    color: var(--white);
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: var(--shadow-hover);
+    transition: transform 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== HISTORY LIST ===== */
+  .history-list { display: flex; flex-direction: column; gap: 14px; }
+  .history-card {
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 18px 20px;
+    border: 2px solid var(--sand);
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .history-card:hover { box-shadow: var(--shadow); border-color: var(--coral-light); }
+  .hc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .hc-date {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--coral);
+  }
+  .hc-mood {
+    font-size: 0.78rem;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-weight: 700;
+  }
+  .hc-mood.good { background: var(--mint-light); color: var(--mint); }
+  .hc-mood.normal { background: var(--sun-light); color: #b8860b; }
+  .hc-mood.bad { background: var(--lavender-light); color: #7a5fa0; }
+  .hc-work {
+    font-size: 0.88rem;
+    color: var(--brown-mid);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hc-delete {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+  .hc-delete:hover { opacity: 1; }
+
+  /* ===== STATS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--cream);
+    border: 2px solid var(--sand);
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    transition: box-shadow 0.2s;
+  }
+  .stat-card:hover { box-shadow: var(--shadow); }
+  .stat-icon { font-size: 2rem; margin-bottom: 6px; }
+  .stat-val {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--coral);
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.78rem; color: var(--brown-mid); font-weight: 600; margin-top: 4px; }
+
+  /* ===== MOOD CHART ===== */
+  .mood-chart { margin-bottom: 28px; }
+  .mood-chart-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--brown-mid);
+    margin-bottom: 12px;
+  }
+  .mood-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
+  .mood-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .mood-bar {
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    transition: height 0.5s ease;
+    min-height: 4px;
+  }
+  .bar-good { background: linear-gradient(180deg, var(--mint), #3ab5ac); }
+  .bar-normal { background: linear-gradient(180deg, var(--sun), #e6c200); }
+  .bar-bad { background: linear-gradient(180deg, var(--lavender), #a88fd4); }
+  .mood-bar-label { font-size: 0.72rem; font-weight: 700; color: var(--brown-mid); }
+
+  /* ===== MONTHLY TABLE ===== */
+  .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .month-nav button {
+    background: var(--sand);
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .month-nav button:hover { background: var(--coral-light); }
+  .month-label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--brown);
+  }
+  .report-table { width: 100%; border-collapse: collapse; }
+  .report-table th {
+    background: var(--sand);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brown-mid);
+    letter-spacing: 0.04em;
+  }
+  .report-table th:first-child { border-radius: 12px 0 0 12px; }
+  .report-table th:last-child { border-radius: 0 12px 12px 0; }
+  .report-table td {
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--sand);
+    color: var(--brown);
+  }
+  .report-table tr:last-child td { border-bottom: none; }
+  .report-table tr:hover td { background: var(--cream); }
+  .empty-state {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--brown-light);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+  @media (max-width: 640px) {
+    header, .nav-tabs, .panel { padding-left: 16px; padding-right: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .stats-grid .stat-card:last-child { grid-column: 1 / -1; }
+    .panel { border-radius: 0 0 var(--radius) var(--radius); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">にっぽ<span>ちゃん</span> 📓</div>
+  <div class="today-badge" id="todayBadge"></div>
+</header>
+
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('write', this)">✏️ 日報を書く</button>
+  <button class="tab-btn" onclick="switchTab('history', this)">📚 過去の日報</button>
+  <button class="tab-btn" onclick="switchTab('report', this)">📊 月次レポート</button>
+</div>
+
+<div class="panel">
+
+  <!-- ===== 日報を書く ===== -->
+  <div id="tab-write" class="tab-content active">
+    <div class="sec-title">今日の日報を記入しよう！</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>📅 日付</label>
+        <input type="date" id="nippoDate">
+      </div>
+      <div class="form-group">
+        <label>⏰ 勤務時間</label>
+        <input type="text" id="startTime" placeholder="例: 10:00〜19:00">
+      </div>
+      <div class="form-group full">
+        <label>💼 今日やったこと</label>
+        <textarea id="workContent" placeholder="例：10:00~ メールチェック&#10;11:00~ ai style作成"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>🤝 仕事で関わった人</label>
+        <textarea id="colleagues" placeholder="例：〇〇チームの△△さん" style="min-height:70px"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>📋 明日の予定</label>
+        <textarea id="tomorrowPlan" placeholder="例：□□の件を確認、提案書の見直しなど..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>💬 ひとこと・所感</label>
+        <textarea id="comment" placeholder="感想や気づいたことなど、なんでもOK！" style="min-height:70px"></textarea>
+      </div>
+      <div class="form-group full">
+        <label>😊 今日の気分</label>
+        <div class="mood-row">
+          <button class="mood-btn" data-mood="good" onclick="selectMood(this)">😄 絶好調</button>
+          <button class="mood-btn" data-mood="normal" onclick="selectMood(this)">😊 まあまあ</button>
+          <button class="mood-btn" data-mood="bad" onclick="selectMood(this)">😔 つかれた</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveNippo()">💾 保存する</button>
+      <button class="btn-secondary" onclick="clearForm()">🔄 クリア</button>
+    </div>
+  </div>
+
+  <!-- ===== 過去の日報 ===== -->
+  <div id="tab-history" class="tab-content">
+    <div class="sec-title">過去の日報一覧</div>
+    <div id="historyList" class="history-list"></div>
+  </div>
+
+  <!-- ===== 月次レポート ===== -->
+  <div id="tab-report" class="tab-content">
+    <div class="sec-title">月次レポート</div>
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">◀</button>
+      <span class="month-label" id="monthLabel"></span>
+      <button onclick="changeMonth(1)">▶</button>
+      <button class="btn-secondary" onclick="exportCSV()" style="margin-left:auto;">📥 CSV出力</button>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="mood-chart">
+      <div class="mood-chart-title">気分の内訳</div>
+      <div class="mood-bars" id="moodBars">
+        <div class="mood-bar-wrap">
+          <div class="mood-bar bar-good" id="barGood" style="height:4px"></div>
+          <div class="mood-bar-label">😄</div>
+        </div>
+        <div class="mood-bar-wrap">
+          <div class="mood-bar bar-normal" id="barNormal" style="height:4px"></div>
+          <div class="mood-bar-label">😊</div>
+        </div>
+        <div class="mood-bar-wrap">
+          <div class="mood-bar bar-bad" id="barBad" style="height:4px"></div>
+          <div class="mood-bar-label">😔</div>
+        </div>
+      </div>
+    </div>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>日付</th><th>勤務時間</th><th>気分</th><th>業務内容（抜粋）</th>
+        </tr>
+      </thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let selectedMood = '';
+  let currentMonth = new Date();
+
+  // 今日の日付をセット
+  const today = new Date();
+  document.getElementById('nippoDate').value = today.toISOString().split('T')[0];
+  document.getElementById('todayBadge').textContent = today.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+  currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    el.classList.add('active');
+    if (name === 'history') renderHistory();
+    if (name === 'report') renderReport();
+  }
+
+  function selectMood(btn) {
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMood = btn.dataset.mood;
+  }
+
+  function getData() {
+    return JSON.parse(localStorage.getItem('nippoData') || '[]');
+  }
+  function saveData(data) {
+    localStorage.setItem('nippoData', JSON.stringify(data));
+  }
+
+  function saveNippo() {
+    const date = document.getElementById('nippoDate').value;
+    const startTime = document.getElementById('startTime').value;
+    const workContent = document.getElementById('workContent').value.trim();
+    const colleagues = document.getElementById('colleagues').value.trim();
+    const tomorrowPlan = document.getElementById('tomorrowPlan').value.trim();
+    const comment = document.getElementById('comment').value.trim();
+
+    if (!date || !workContent) {
+      showToast('⚠️ 日付と業務内容は必須です！');
+      return;
+    }
+
+    const data = getData();
+    const idx = data.findIndex(d => d.date === date);
+    const entry = { date, startTime, workContent, colleagues, tomorrowPlan, comment, mood: selectedMood, savedAt: new Date().toISOString() };
+
+    if (idx >= 0) {
+      data[idx] = entry;
+      showToast('✅ 更新しました！');
+    } else {
+      data.push(entry);
+      showToast('🎉 保存しました！');
+    }
+    saveData(data);
+  }
+
+  function clearForm() {
+    document.getElementById('startTime').value = '';
+    document.getElementById('workContent').value = '';
+    document.getElementById('colleagues').value = '';
+    document.getElementById('tomorrowPlan').value = '';
+    document.getElementById('comment').value = '';
+    selectedMood = '';
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    showToast('🔄 クリアしました');
+  }
+
+  function moodLabel(m) {
+    return m === 'good' ? '😄 絶好調' : m === 'normal' ? '😊 まあまあ' : m === 'bad' ? '😔 つかれた' : '—';
+  }
+  function moodClass(m) {
+    return m === 'good' ? 'good' : m === 'normal' ? 'normal' : 'bad';
+  }
+
+  function renderHistory() {
+    const data = getData().sort((a, b) => b.date.localeCompare(a.date));
+    const el = document.getElementById('historyList');
+    if (data.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>まだ日報がありません</div>';
+      return;
+    }
+    el.innerHTML = data.map((d, i) => `
+      <div class="history-card" onclick="loadEntry(${i})">
+        <div class="hc-header">
+          <span class="hc-date">${formatDate(d.date)}</span>
+          ${d.mood ? `<span class="hc-mood ${moodClass(d.mood)}">${moodLabel(d.mood)}</span>` : ''}
+          ${d.startTime ? `<span style="font-size:0.78rem;color:var(--brown-light);margin-left:4px">🕗 ${d.startTime}</span>` : ''}
+          <button class="hc-delete" onclick="deleteEntry(event, '${d.date}')">🗑️</button>
+        </div>
+        <div class="hc-work">${d.workContent.replace(/\n/g, ' ')}</div>
+      </div>
+    `).join('');
+  }
+
+  function loadEntry(sortedIdx) {
+    const data = getData().sort((a, b) => b.date.localeCompare(a.date));
+    const d = data[sortedIdx];
+    document.getElementById('nippoDate').value = d.date;
+    document.getElementById('startTime').value = d.startTime || '';
+    document.getElementById('workContent').value = d.workContent;
+    document.getElementById('colleagues').value = d.colleagues || '';
+    document.getElementById('tomorrowPlan').value = d.tomorrowPlan || '';
+    document.getElementById('comment').value = d.comment || '';
+    selectedMood = d.mood || '';
+    document.querySelectorAll('.mood-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.mood === selectedMood);
+    });
+    switchTab('write', document.querySelectorAll('.tab-btn')[0]);
+    showToast('📝 読み込みました');
+  }
+
+  function deleteEntry(e, date) {
+    e.stopPropagation();
+    if (!confirm(`${formatDate(date)} の日報を削除しますか？`)) return;
+    const data = getData().filter(d => d.date !== date);
+    saveData(data);
+    renderHistory();
+    showToast('🗑️ 削除しました');
+  }
+
+  function formatDate(str) {
+    const d = new Date(str + 'T00:00:00');
+    return d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  }
+
+  function changeMonth(delta) {
+    currentMonth.setMonth(currentMonth.getMonth() + delta);
+    renderReport();
+  }
+
+  function renderReport() {
+    const y = currentMonth.getFullYear();
+    const m = currentMonth.getMonth();
+    document.getElementById('monthLabel').textContent = `${y}年 ${m + 1}月`;
+
+    const all = getData();
+    const monthly = all.filter(d => {
+      const dt = new Date(d.date + 'T00:00:00');
+      return dt.getFullYear() === y && dt.getMonth() === m;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+
+    const goodCnt = monthly.filter(d => d.mood === 'good').length;
+    const normalCnt = monthly.filter(d => d.mood === 'normal').length;
+    const badCnt = monthly.filter(d => d.mood === 'bad').length;
+    const total = monthly.length || 1;
+    const maxBar = 76;
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-val">${monthly.length}</div><div class="stat-label">日報の数</div></div>
+      <div class="stat-card"><div class="stat-icon">😄</div><div class="stat-val">${goodCnt}</div><div class="stat-label">絶好調の日</div></div>
+      <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val">${workdaysInMonth(y, m)}</div><div class="stat-label">その月の営業日</div></div>
+    `;
+
+    document.getElementById('barGood').style.height = (goodCnt / total * maxBar + 4) + 'px';
+    document.getElementById('barNormal').style.height = (normalCnt / total * maxBar + 4) + 'px';
+    document.getElementById('barBad').style.height = (badCnt / total * maxBar + 4) + 'px';
+
+    const tbody = document.getElementById('reportBody');
+    if (monthly.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🗓️</div>この月の日報はまだありません</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = monthly.map(d => `
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.startTime || '—'}</td>
+        <td>${moodLabel(d.mood)}</td>
+        <td>${d.workContent.slice(0, 40)}${d.workContent.length > 40 ? '…' : ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  function workdaysInMonth(y, m) {
+    const days = new Date(y, m + 1, 0).getDate();
+    let count = 0;
+    for (let i = 1; i <= days; i++) {
+      const dow = new Date(y, m, i).getDay();
+      if (dow !== 0 && dow !== 6) count++;
+    }
+    return count;
+  }
+
+  function exportCSV() {
+    const y = currentMonth.getFullYear();
+    const m = currentMonth.getMonth();
+    const monthly = getData().filter(d => {
+      const dt = new Date(d.date + 'T00:00:00');
+      return dt.getFullYear() === y && dt.getMonth() === m;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+
+    if (monthly.length === 0) { showToast('⚠️ この月のデータがありません'); return; }
+
+    const header = ['日付', '勤務時間', '気分', '業務内容', '関わった人', '明日の予定', 'コメント'];
+    const rows = monthly.map(d => [
+      d.date, d.startTime || '', moodLabel(d.mood),
+      `"${(d.workContent || '').replace(/"/g, '""')}"`,
+      `"${(d.colleagues || '').replace(/"/g, '""')}"`,
+      `"${(d.tomorrowPlan || '').replace(/"/g, '""')}"`,
+      `"${(d.comment || '').replace(/"/g, '""')}"`
+    ]);
+    const csv = '\uFEFF' + [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `日報_${y}${String(m + 1).padStart(2, '0')}.csv`;
+    a.click();
+    showToast('📥 CSVを出力しました！');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  renderReport();
+</script>
+</body>
+</html>
