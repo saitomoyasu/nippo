@@ -318,12 +318,12 @@
     color: var(--brown-mid);
     margin-bottom: 12px;
   }
-  .mood-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; }
+  .mood-bars { display: flex; gap: 8px; align-items: flex-end; min-height: 60px; }
   .mood-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
   .mood-bar {
     width: 100%;
     border-radius: 8px 8px 0 0;
-    transition: height 0.5s ease;
+    transition: height 0.6s ease;
     min-height: 4px;
   }
   .bar-good { background: linear-gradient(180deg, var(--mint), #3ab5ac); }
@@ -332,7 +332,8 @@
   .mood-bar-label { font-size: 0.72rem; font-weight: 700; color: var(--brown-mid); }
 
   /* ===== MONTHLY TABLE ===== */
-  .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .month-nav .month-controls { display: flex; align-items: center; gap: 12px; }
   .month-nav button {
     background: var(--sand);
     border: none;
@@ -456,10 +457,12 @@
   <div id="tab-report" class="tab-content">
     <div class="sec-title">月次レポート</div>
     <div class="month-nav">
-      <button onclick="changeMonth(-1)">◀</button>
-      <span class="month-label" id="monthLabel"></span>
-      <button onclick="changeMonth(1)">▶</button>
-      <button class="btn-secondary" onclick="exportCSV()" style="margin-left:auto;">📥 CSV出力</button>
+      <div class="month-controls">
+        <button onclick="changeMonth(-1)">◀</button>
+        <span class="month-label" id="monthLabel"></span>
+        <button onclick="changeMonth(1)">▶</button>
+      </div>
+      <button class="btn-secondary" onclick="exportCSV()">📥 CSV出力</button>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
     <div class="mood-chart">
@@ -502,6 +505,33 @@
   document.getElementById('nippoDate').value = today.toISOString().split('T')[0];
   document.getElementById('todayBadge').textContent = today.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
   currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // ② 日付変更時：既存データがあれば復元、なければリセット
+  document.getElementById('nippoDate').addEventListener('change', function() {
+    const date = this.value;
+    const data = getData();
+    const existing = data.find(d => d.date === date);
+    if (existing) {
+      document.getElementById('startTime').value = existing.startTime || '';
+      document.getElementById('workContent').value = existing.workContent || '';
+      document.getElementById('colleagues').value = existing.colleagues || '';
+      document.getElementById('tomorrowPlan').value = existing.tomorrowPlan || '';
+      document.getElementById('comment').value = existing.comment || '';
+      selectedMood = existing.mood || '';
+      document.querySelectorAll('.mood-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.mood === selectedMood);
+      });
+      showToast('📝 保存済みデータを読み込みました');
+    } else {
+      document.getElementById('startTime').value = '';
+      document.getElementById('workContent').value = '';
+      document.getElementById('colleagues').value = '';
+      document.getElementById('tomorrowPlan').value = '';
+      document.getElementById('comment').value = '';
+      selectedMood = '';
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    }
+  });
 
   function switchTab(name, el) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -640,8 +670,8 @@
     const goodCnt = monthly.filter(d => d.mood === 'good').length;
     const normalCnt = monthly.filter(d => d.mood === 'normal').length;
     const badCnt = monthly.filter(d => d.mood === 'bad').length;
-    const total = monthly.length || 1;
-    const maxBar = 76;
+    const maxCnt = Math.max(goodCnt, normalCnt, badCnt, 1);
+    const maxBarPx = Math.max(80, maxCnt * 14); // 1件14px、最低80px
 
     document.getElementById('statsGrid').innerHTML = `
       <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-val">${monthly.length}</div><div class="stat-label">日報の数</div></div>
@@ -649,9 +679,9 @@
       <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val">${workdaysInMonth(y, m)}</div><div class="stat-label">その月の営業日</div></div>
     `;
 
-    document.getElementById('barGood').style.height = (goodCnt / total * maxBar + 4) + 'px';
-    document.getElementById('barNormal').style.height = (normalCnt / total * maxBar + 4) + 'px';
-    document.getElementById('barBad').style.height = (badCnt / total * maxBar + 4) + 'px';
+    document.getElementById('barGood').style.height   = (goodCnt   / maxCnt * maxBarPx + 4) + 'px';
+    document.getElementById('barNormal').style.height = (normalCnt / maxCnt * maxBarPx + 4) + 'px';
+    document.getElementById('barBad').style.height    = (badCnt    / maxCnt * maxBarPx + 4) + 'px';
 
     const tbody = document.getElementById('reportBody');
     if (monthly.length === 0) {
